@@ -10,10 +10,10 @@ const resolvers = {
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
       if (!args.genre) {
-        return Book.find({});
+        return Book.find({}).populate("author");
       }
 
-      return Book.find({ genres: args.genre });
+      return Book.find({ genres: args.genre }).populate("author");
     },
     allAuthors: async () => Author.find({}),
     me: (root, args, { currentUser }) => {
@@ -28,6 +28,9 @@ const resolvers = {
   },
   Author: {
     name: ({ name }) => name,
+    bookCount: async ({ _id }) => {
+      return Book.collection.countDocuments({ author: _id });
+    },
   },
   Mutation: {
     addBook: async (root, args, { currentUser }) => {
@@ -122,6 +125,15 @@ const resolvers = {
       };
 
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) };
+    },
+    _resetDatabase: async () => {
+      if (process.env.NODE_ENV !== "test") {
+        throw new GraphQLError("_resetDatabase is only available in test mode");
+      }
+      await Author.deleteMany({});
+      await Book.deleteMany({});
+      await User.deleteMany({});
+      return true;
     },
   },
 };

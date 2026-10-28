@@ -1,5 +1,6 @@
 const Book = require("./models/book");
 const Author = require("./models/author");
+const { GraphQLError } = require("graphql/error");
 
 const resolvers = {
   Query: {
@@ -28,17 +29,35 @@ const resolvers = {
       let author = await Author.findOne({ name: args.author });
 
       if (!author) {
-        author = await Author.create({ name: args.author });
+        try {
+          author = await Author.create({ name: args.author });
+        } catch (error) {
+          throw new GraphQLError(`Saving new author failed: ${error.message}`, {
+            extensions: {
+              code: "BAD_USER_INPUT",
+              invalidArgs: args.author,
+              error,
+            },
+          });
+        }
       }
 
-      const book = await Book.create({
-        title: args.title,
-        published: args.published,
-        genres: args.genres,
-        author: author._id,
-      });
-
-      return book.populate("author");
+      try {
+        const book = await Book.create({
+          title: args.title,
+          published: args.published,
+          genres: args.genres,
+          author: author._id,
+        });
+        return book.populate("author");
+      } catch (error) {
+        throw new GraphQLError(`Saving book failed: ${error.message}`, {
+          extensions: {
+            code: "BAD_USER_INPUT",
+            error,
+          },
+        });
+      }
     },
     editAuthor: async (root, args) => {
       const author = await Author.findOne({ name: args.name });

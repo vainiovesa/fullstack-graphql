@@ -3,7 +3,6 @@ import { useMutation } from "@apollo/client/react";
 import { EDIT_AUTHOR, ALL_AUTHORS, ALL_BOOKS } from "../queries";
 
 const BirthYearForm = ({ authors }) => {
-  const [name, setName] = useState("");
   const [born, setBorn] = useState("");
 
   const [editAuthor] = useMutation(EDIT_AUTHOR, {
@@ -14,9 +13,14 @@ const BirthYearForm = ({ authors }) => {
   const submit = async (event) => {
     event.preventDefault();
 
-    editAuthor({ variables: { name, setBornTo: Number(born) } });
+    const form = event.target;
+    const formData = new FormData(form);
+    const name = formData.get("authorSelect");
 
-    setName("");
+    editAuthor({
+      variables: { name, setBornTo: Number(born) },
+    });
+
     setBorn("");
   };
 
@@ -29,7 +33,7 @@ const BirthYearForm = ({ authors }) => {
           <div>
             <label>
               name
-              <select onChange={(e) => setName(e.target.value)}>
+              <select name="authorSelect">
                 {authors.map((a) => (
                   <option key={a.id} value={a.name}>
                     {a.name}

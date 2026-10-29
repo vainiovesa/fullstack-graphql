@@ -3,8 +3,10 @@ import { useQuery } from "@apollo/client/react";
 import { ALL_BOOKS } from "../queries";
 
 const Books = ({ show }) => {
-  const result = useQuery(ALL_BOOKS);
   const [genre, setGenre] = useState(null);
+  const result = useQuery(ALL_BOOKS, {
+    variables: { genre },
+  });
 
   if (!show) {
     return null;
@@ -14,13 +16,10 @@ const Books = ({ show }) => {
     return <div>Loading...</div>;
   }
 
-  let books = result.data.allBooks;
+  const books = result.data.allBooks;
   const genres = [
     ...new Set(books.map((b) => b.genres).reduce((a, b) => a.concat(b), [])),
   ];
-  if (genre) {
-    books = books.filter((b) => b.genres.includes(genre));
-  }
 
   return (
     <div>

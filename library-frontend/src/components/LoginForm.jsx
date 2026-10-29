@@ -12,6 +12,8 @@ const LoginForm = ({ show, setError, setToken, setPage }) => {
       setToken(token);
       localStorage.setItem("phonebook-user-token", token);
       setPage("authors");
+      setUsername("");
+      setPassword("");
     },
     onError: (error) => {
       setError(error.message);
